@@ -4,15 +4,20 @@ import { fileURLToPath } from 'node:url';
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const SW = 30;
-// Scale the mark so its vertical extent fills ~69% of the canvas, matching
-// correct-margin.jpg (~15-16% edge margin). Applied uniformly to every asset.
-const SCALE = 1.18;
+// Scale the mark so its largest dimension fills ~69% of the canvas (~15-16%
+// edge margin, matching correct-margin.jpg). Tuned for the 17.5deg rotation
+// below — a rotated petal no longer reaches straight up, so the mark needs a
+// larger scale than the upright version to keep the same footprint. Applied
+// uniformly to every asset.
+const SCALE = 1.24;
+// Rotate the whole mark clockwise (SVG positive rotation = clockwise).
+const ROTATE = 17.5;
 const CENTER_R = (39.94 * SCALE).toFixed(2);
 const LENS = 'M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z';
 const ARC_TOP_RIGHT = 'M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0';
 const ARC_TOP_LEFT = 'M 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0';
 
-const at = (a) => `transform="translate(512 512) rotate(${a.toFixed(3)}) scale(${SCALE})"`;
+const at = (a) => `transform="translate(512 512) rotate(${(a + ROTATE).toFixed(3)}) scale(${SCALE})"`;
 const fillPetal = (a, c) => `<path d="${LENS}" fill="${c}" ${at(a)}></path>`;
 const strokePetal = (a, c) => `<path d="${LENS}" fill="none" stroke="${c}" stroke-width="${SW}" ${at(a)}></path>`;
 const strokeArc = (d, a, c) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${SW}" ${at(a)}></path>`;
