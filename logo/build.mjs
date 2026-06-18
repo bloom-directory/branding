@@ -1,8 +1,10 @@
 import { writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const dir = dirname(fileURLToPath(import.meta.url));
+const PNG_SIZE = 1024;
 const SW = 30;
 // Scale the mark so its largest dimension fills ~69% of the canvas (~15-16%
 // edge margin, matching correct-margin.jpg). Tuned for the 17.5deg rotation
@@ -58,7 +60,21 @@ const variants = [
   { name: 'bloom-mono-burgundy', bg: null,      fill: '#8a2a3a', stroke: '#8a2a3a', center: null },
 ];
 
+// Every SVG must get a matching PNG. Preflight the renderer and fail closed if
+// it's missing, rather than silently emitting SVGs with no PNGs.
+try {
+  execFileSync('rsvg-convert', ['--version'], { stdio: 'ignore' });
+} catch {
+  console.error('error: rsvg-convert not found — refusing to emit SVGs without matching PNGs.');
+  console.error('install it with: brew install librsvg');
+  process.exit(1);
+}
+
 for (const v of variants) {
-  writeFileSync(`${dir}/${v.name}.svg`, svg(v));
-  console.log('wrote', v.name + '.svg');
+  const svgPath = `${dir}/${v.name}.svg`;
+  const pngPath = `${dir}/${v.name}.png`;
+  writeFileSync(svgPath, svg(v));
+  // execFileSync throws on non-zero exit, so a render failure aborts the build.
+  execFileSync('rsvg-convert', ['-w', String(PNG_SIZE), '-h', String(PNG_SIZE), svgPath, '-o', pngPath]);
+  console.log('wrote', v.name + '.svg + .png');
 }
