@@ -1,0 +1,47 @@
+name: Deploy preview to Pages
+
+# Publishes logo/preview.html to GitHub Pages.
+# NOTE: the published page is PUBLIC (anyone with the URL can open it), even
+# though the repository stays private. It contains only the design tool — no
+# repo contents or secrets.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - logo/preview.html
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          cp logo/preview.html _site/preview.html
+          printf '%s' '<!doctype html><meta http-equiv="refresh" content="0; url=./preview.html">' > _site/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

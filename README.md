@@ -103,6 +103,8 @@ Use the SVG as the primary favicon (crisp at any size) with the PNGs as fallback
 
 ### `logo/preview.html`
 
+**Live tool:** <https://bloom-directory.github.io/branding/preview.html> — published from `main` via GitHub Pages ([`.github/workflows/pages.yml`](.github/workflows/pages.yml)). Note: the repo is private but this page is **publicly reachable** by anyone with the link (it's only the design tool — no repo contents or secrets). You can also just open the file locally.
+
 A self-contained, no-build HTML tool — open it in a browser. It lets you:
 
 - tune every knob live: mark scale, rotation, stroke width, stroke-petal length and an area-preserving "tip pull", center-dot radius, and all colors;
