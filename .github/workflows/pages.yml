@@ -1,9 +1,7 @@
 name: Deploy preview to Pages
 
-# Publishes logo/preview.html to GitHub Pages.
-# NOTE: the published page is PUBLIC (anyone with the URL can open it), even
-# though the repository stays private. It contains only the design tool — no
-# repo contents or secrets.
+# Publishes logo/preview.html to GitHub Pages at
+# https://bloom-directory.github.io/branding/preview.html
 
 on:
   push:
