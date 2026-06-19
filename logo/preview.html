@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bloom logo — knob preview</title>
+<style>
+  :root { --b: #d9d3c7; --bg: #f0ebe0; --ink: #1a1a1a; --muted: #6b6760; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: #faf8f3; }
+  header { padding: 20px 24px; border-bottom: 1px solid var(--b); }
+  header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  .wrap { display: grid; grid-template-columns: 320px 1fr; gap: 24px; padding: 24px; align-items: start; }
+  @media (max-width: 820px) { .wrap { grid-template-columns: 1fr; } }
+  .panel { background: #fff; border: 1px solid var(--b); border-radius: 12px; padding: 18px; }
+  .panel h2 { margin: 0 0 14px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .knob { margin-bottom: 16px; }
+  .knob label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .knob label b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .knob input[type=range] { width: 100%; }
+  .colors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  .col { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .col input[type=color] { width: 34px; height: 28px; padding: 0; border: 1px solid var(--b); border-radius: 6px; background: none; }
+  .stage { display: flex; flex-direction: column; gap: 18px; }
+  .bgrow { display: flex; gap: 8px; flex-wrap: wrap; }
+  .bgrow button { font: inherit; font-size: 13px; padding: 6px 12px; border: 1px solid var(--b); background: #fff; border-radius: 8px; cursor: pointer; }
+  .bgrow button.active { border-color: var(--ink); background: var(--ink); color: #fff; }
+  .preview { width: 100%; max-width: 460px; aspect-ratio: 1; border-radius: 16px; border: 1px solid var(--b); overflow: hidden; }
+  .checker { background-image: linear-gradient(45deg,#ddd 25%,transparent 25%),linear-gradient(-45deg,#ddd 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ddd 75%),linear-gradient(-45deg,transparent 75%,#ddd 75%); background-size: 24px 24px; background-position: 0 0,0 12px,12px -12px,-12px 0; }
+  .preview svg { display: block; width: 100%; height: 100%; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .tile { text-align: center; }
+  .tile .frame { background: #6f6f6f; border-radius: 10px; overflow: hidden; aspect-ratio: 1; border: 1px solid var(--b); }
+  .tile .frame svg { display: block; width: 100%; height: 100%; }
+  .tile span { display: block; margin-top: 5px; font-size: 11px; color: var(--muted); }
+  .previewRow { display: flex; gap: 18px; align-items: flex-start; }
+  .previewRow .preview { flex: 0 1 460px; }
+  .favicons { flex: 1 1 160px; display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start; }
+  .fav { text-align: center; }
+  .fav .favframe { background: #6f6f6f; border: 1px solid var(--b); border-radius: 6px; overflow: hidden; }
+  .fav .favframe svg { display: block; width: 100%; height: 100%; }
+  .fav span { display: block; margin-top: 4px; font-size: 10px; color: var(--muted); }
+  .out { margin: 0 24px 32px; }
+  .out .bar { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .out h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .out button { font: inherit; font-size: 13px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer; }
+  .out button.ghost { background: #fff; color: var(--ink); }
+  .out pre { margin: 0; max-height: 360px; overflow: auto; background: #1a1a1a; color: #e8e6e1; padding: 16px; border-radius: 12px; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .note { color: var(--muted); font-size: 12px; }
+  .settings { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .settings input { flex: 1; min-width: 120px; font: 12px ui-monospace, Menlo, monospace; padding: 6px 8px; border: 1px solid var(--b); border-radius: 8px; }
+  .settings button { font: inherit; font-size: 13px; padding: 6px 12px; border: 1px solid var(--ink); background: var(--ink); color: #fff; border-radius: 8px; cursor: pointer; }
+  .settings button.ghost { background: #fff; color: var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Bloom logo — knob preview</h1>
+  <p>Tune the knobs, watch the mark update, then download a <code>build.mjs</code> that renders every variant with your values. Defaults match the current production logo.</p>
+</header>
+
+<div class="wrap">
+  <div class="panel" id="controls">
+    <h2>Geometry</h2>
+    <div class="knob"><label>Mark scale <b id="v-scale">1.24</b></label><input type="range" id="scale" min="1" max="1.5" step="0.01" value="1.24"></div>
+    <div class="knob"><label>Rotation° (clockwise) <b id="v-rotate">17.5</b></label><input type="range" id="rotate" min="-45" max="45" step="0.5" value="17.5"></div>
+    <div class="knob"><label>Stroke width <b id="v-sw">30</b></label><input type="range" id="sw" min="4" max="60" step="1" value="30"></div>
+    <div class="knob"><label>Stroke-petal distance <b id="v-len">1.00</b></label><input type="range" id="len" min="0.5" max="1" step="0.01" value="1"></div>
+    <div class="knob"><label>Stroke-petal tip pull <b id="v-tip">1.00</b></label><input type="range" id="tip" min="0.6" max="1.6" step="0.01" value="1"></div>
+    <div class="knob"><label>Center dot radius <b id="v-cr">39.94</b></label><input type="range" id="cr" min="0" max="120" step="0.5" value="39.94"></div>
+    <div class="knob"><label>Favicon preview size (px) <b id="v-fav">48</b></label><input type="range" id="fav" min="16" max="96" step="1" value="48"></div>
+
+    <h2 style="margin-top:20px">Colors</h2>
+    <div class="colors">
+      <label class="col"><input type="color" id="c-fill" value="#9d2d3f">Fill</label>
+      <label class="col"><input type="color" id="c-stroke" value="#7a2230">Outline</label>
+      <label class="col"><input type="color" id="c-cream" value="#f0ebe0">Cream</label>
+      <label class="col"><input type="color" id="c-ink" value="#1a1a1a">Ink</label>
+      <label class="col"><input type="color" id="c-burg" value="#8a2a3a">Mono burgundy</label>
+    </div>
+
+    <h2 style="margin-top:20px">Negative overlap</h2>
+    <p class="note" style="margin:-8px 0 10px">Outlined petals knock a hole through the petal beneath them (shows the background / surface).</p>
+    <div class="bgrow" id="knockrow">
+      <button data-k="none" class="active">None</button>
+      <button data-k="all">All</button>
+      <button data-k="mono">Mono only</button>
+    </div>
+
+    <h2 style="margin-top:20px">Settings</h2>
+    <div class="settings">
+      <button id="copy-settings">Copy</button>
+      <input type="text" id="settings-str" placeholder="paste settings here…" spellcheck="false">
+      <button id="load-settings" class="ghost">Load</button>
+    </div>
+    <p class="note" id="settings-msg" style="margin-top:8px"></p>
+  </div>
+
+  <div class="stage">
+    <div class="bgrow" id="bgrow">
+      <button data-bg="cream" class="active">Cream</button>
+      <button data-bg="white">White</button>
+      <button data-bg="black">Black</button>
+      <button data-bg="transparent">Transparent</button>
+    </div>
+    <div class="previewRow">
+      <div class="preview" id="preview"></div>
+      <div class="favicons" id="favicons"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+
+<div class="out">
+  <div class="bar">
+    <h2>build.mjs</h2>
+    <button id="download">Download build.mjs</button>
+    <button id="copy" class="ghost">Copy</button>
+    <span class="note" id="copied"></span>
+  </div>
+  <pre id="code"></pre>
+</div>
+
+<script type="text/plain" id="build-template">import { writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+
+const dir = dirname(fileURLToPath(import.meta.url));
+const PNG_SIZE = 1024;
+const SW = __SW__;
+const SCALE = __SCALE__;
+// Rotate the whole mark clockwise (SVG positive rotation = clockwise).
+const ROTATE = __ROTATE__;
+const CENTER_R = (__CR__ * SCALE).toFixed(2);
+// Negative overlap: outlined petals knock a hole through the petal beneath them.
+// 'none' = off; 'all' = every variant; 'mono' = only single-color marks
+// (fill === stroke), where the weave is otherwise invisible.
+const KNOCKOUT = '__KNOCK__';
+
+// Distance from center to the tip of the stroke-only petals, as a fraction of
+// the filled petals' length (1 = same as filled; lower = outlined petals end
+// earlier, still starting from the same center point).
+const STROKE_LEN = __LEN__;
+// Area-preserving "tip pull" for the stroke-only petals: stretch along the
+// petal axis (x by g, y by 1/g) so the outer point moves out/in from the
+// center while each petal's area stays the same. 1 = unchanged; >1 pulls the
+// tip out and narrows; <1 pulls it in and fattens.
+const STROKE_TIP = __TIP__;
+
+// Petal geometry, anchored at the inner point ANCHOR on the +x axis. f shrinks
+// the petal about that anchor (same start, ends earlier); g is the area-
+// preserving tip pull (stretches x, compresses y).
+const ANCHOR = 24.58, TIP = 282.62, CX1 = 96.09, CX2 = 209.14, CW = 141.31;
+const sx = (x, f, g = 1) => (ANCHOR + (x - ANCHOR) * f * g).toFixed(2);
+const sy = (y, f, g = 1) => (y * f / g).toFixed(2);
+const lens = (f, g = 1) => `M ${ANCHOR} 0 C ${sx(CX1, f, g)} ${sy(CW, f, g)} ${sx(CX2, f, g)} ${sy(CW, f, g)} ${sx(TIP, f, g)} 0 C ${sx(CX2, f, g)} ${sy(-CW, f, g)} ${sx(CX1, f, g)} ${sy(-CW, f, g)} ${ANCHOR} 0 Z`;
+const arcRight = (f, g = 1) => `M ${ANCHOR} 0 C ${sx(CX1, f, g)} ${sy(CW, f, g)} ${sx(CX2, f, g)} ${sy(CW, f, g)} ${sx(TIP, f, g)} 0`;
+const arcLeft = (f, g = 1) => `M ${sx(TIP, f, g)} 0 C ${sx(CX2, f, g)} ${sy(-CW, f, g)} ${sx(CX1, f, g)} ${sy(-CW, f, g)} ${ANCHOR} 0`;
+
+const at = (a) => `transform="translate(512 512) rotate(${(a + ROTATE).toFixed(3)}) scale(${SCALE})"`;
+const fillPetal = (a, c) => `<path d="${lens(1)}" fill="${c}" ${at(a)}></path>`;
+const strokePetal = (a, c) => `<path d="${lens(STROKE_LEN, STROKE_TIP)}" fill="none" stroke="${c}" stroke-width="${SW}" ${at(a)}></path>`;
+const strokeArc = (d, a, c) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${SW}" ${at(a)}></path>`;
+
+// Braided pinwheel: outlined petal at top, top petal split into two arcs so the
+// weave is consistent all the way around (right arc under, left arc over).
+function mark(fill, stroke) {
+  return [
+    '<g stroke-linejoin="round" stroke-linecap="round">',
+    strokeArc(arcRight(STROKE_LEN, STROKE_TIP), -90, stroke),
+    fillPetal(-30, fill),
+    strokePetal(30, stroke),
+    fillPetal(90, fill),
+    strokePetal(150, stroke),
+    fillPetal(210, fill),
+    strokeArc(arcLeft(STROKE_LEN, STROKE_TIP), -90, stroke),
+    '</g>',
+  ].join('\n');
+}
+
+// Luminance mask mirroring mark()'s weave: white keeps ink, black cuts a hole.
+// Outlined petals fill black (knock out the filled petal beneath) but keep a
+// white outline; later filled petals repaint white, preserving the weave.
+function maskMark() {
+  const fp = (a) => `<path d="${lens(1)}" fill="#fff" ${at(a)}></path>`;
+  const sp = (a) => `<path d="${lens(STROKE_LEN, STROKE_TIP)}" fill="#000" stroke="#fff" stroke-width="${SW}" ${at(a)}></path>`;
+  const sa = (d, a) => `<path d="${d}" fill="#000" stroke="#fff" stroke-width="${SW}" ${at(a)}></path>`;
+  return [
+    '<g stroke-linejoin="round" stroke-linecap="round">',
+    sa(arcRight(STROKE_LEN, STROKE_TIP), -90),
+    fp(-30), sp(30), fp(90), sp(150), fp(210),
+    sa(arcLeft(STROKE_LEN, STROKE_TIP), -90),
+    '</g>',
+  ].join('\n');
+}
+
+function svg({ bg, fill, stroke, center }) {
+  const knock = KNOCKOUT === 'all' || (KNOCKOUT === 'mono' && fill === stroke);
+  const parts = ['<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">'];
+  if (bg) parts.push(`<rect x="0" y="0" width="1024" height="1024" fill="${bg}"></rect>`);
+  if (knock) {
+    parts.push('<defs><mask id="knockout" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">');
+    parts.push(maskMark());
+    parts.push('</mask></defs>');
+    parts.push(`<g mask="url(#knockout)">${mark(fill, stroke)}</g>`);
+  } else {
+    parts.push(mark(fill, stroke));
+  }
+  if (center) parts.push(`<circle cx="512" cy="512" r="${CENTER_R}" fill="${center}"></circle>`);
+  parts.push('</svg>');
+  return parts.join('\n') + '\n';
+}
+
+const FILL = '__FILL__', STROKE = '__STROKE__', CREAM = '__CREAM__';
+const WHITE = '#ffffff', BLACK = '#000000', INK = '__INK__', BURG = '__BURG__';
+
+const variants = [
+  { name: 'bloom-primary',       bg: null,  fill: FILL,  stroke: STROKE, center: null  },
+  { name: 'bloom-icon-cream',    bg: CREAM, fill: FILL,  stroke: STROKE, center: CREAM },
+  { name: 'bloom-icon-white',    bg: WHITE, fill: FILL,  stroke: STROKE, center: WHITE },
+  { name: 'bloom-icon-black',    bg: BLACK, fill: CREAM, stroke: CREAM,  center: BLACK },
+  { name: 'bloom-mono-black',    bg: null,  fill: INK,   stroke: INK,    center: null  },
+  { name: 'bloom-mono-white',    bg: null,  fill: WHITE, stroke: WHITE,  center: null  },
+  { name: 'bloom-mono-cream',    bg: null,  fill: CREAM, stroke: CREAM,  center: null  },
+  { name: 'bloom-mono-burgundy', bg: null,  fill: BURG,  stroke: BURG,   center: null  },
+];
+
+// Every SVG must get a matching PNG. Preflight the renderer and fail closed if
+// it's missing, rather than silently emitting SVGs with no PNGs.
+try {
+  execFileSync('rsvg-convert', ['--version'], { stdio: 'ignore' });
+} catch {
+  console.error('error: rsvg-convert not found — refusing to emit SVGs without matching PNGs.');
+  console.error('install it with: brew install librsvg');
+  process.exit(1);
+}
+
+for (const v of variants) {
+  const svgPath = `${dir}/${v.name}.svg`;
+  const pngPath = `${dir}/${v.name}.png`;
+  writeFileSync(svgPath, svg(v));
+  // execFileSync throws on non-zero exit, so a render failure aborts the build.
+  execFileSync('rsvg-convert', ['-w', String(PNG_SIZE), '-h', String(PNG_SIZE), svgPath, '-o', pngPath]);
+  console.log('wrote', v.name + '.svg + .png');
+}
+</script>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let curBg = 'cream';
+let knockMode = 'none';
+
+function cfg() {
+  return {
+    SW: +$('sw').value,
+    SCALE: (+$('scale').value).toFixed(2),
+    ROTATE: (+$('rotate').value).toFixed(1),
+    LEN: (+$('len').value).toFixed(2),
+    TIP: (+$('tip').value).toFixed(2),
+    CR: (+$('cr').value).toFixed(2),
+    FILL: $('c-fill').value,
+    STROKE: $('c-stroke').value,
+    CREAM: $('c-cream').value,
+    INK: $('c-ink').value,
+    BURG: $('c-burg').value,
+    KNOCK: knockMode,
+  };
+}
+
+// Geometry — mirrors build.mjs exactly so the preview matches the output.
+function markInner(c, fill, stroke) {
+  const A = 24.58, TIP = 282.62, CX1 = 96.09, CX2 = 209.14, CW = 141.31;
+  const f = +c.LEN, g = +c.TIP, S = +c.SCALE, R = +c.ROTATE, SW = c.SW;
+  const sx = (x, k, q = 1) => (A + (x - A) * k * q).toFixed(2);
+  const sy = (y, k, q = 1) => (y * k / q).toFixed(2);
+  const lens = (k, q = 1) => `M ${A} 0 C ${sx(CX1,k,q)} ${sy(CW,k,q)} ${sx(CX2,k,q)} ${sy(CW,k,q)} ${sx(TIP,k,q)} 0 C ${sx(CX2,k,q)} ${sy(-CW,k,q)} ${sx(CX1,k,q)} ${sy(-CW,k,q)} ${A} 0 Z`;
+  const arcR = (k, q = 1) => `M ${A} 0 C ${sx(CX1,k,q)} ${sy(CW,k,q)} ${sx(CX2,k,q)} ${sy(CW,k,q)} ${sx(TIP,k,q)} 0`;
+  const arcL = (k, q = 1) => `M ${sx(TIP,k,q)} 0 C ${sx(CX2,k,q)} ${sy(-CW,k,q)} ${sx(CX1,k,q)} ${sy(-CW,k,q)} ${A} 0`;
+  const at = (a) => `transform="translate(512 512) rotate(${(a + R).toFixed(3)}) scale(${S})"`;
+  const fp = (a) => `<path d="${lens(1)}" fill="${fill}" ${at(a)}></path>`;
+  const sp = (a) => `<path d="${lens(f, g)}" fill="none" stroke="${stroke}" stroke-width="${SW}" ${at(a)}></path>`;
+  const sa = (d, a) => `<path d="${d}" fill="none" stroke="${stroke}" stroke-width="${SW}" ${at(a)}></path>`;
+  return '<g stroke-linejoin="round" stroke-linecap="round">' +
+    sa(arcR(f, g), -90) + fp(-30) + sp(30) + fp(90) + sp(150) + fp(210) + sa(arcL(f, g), -90) + '</g>';
+}
+
+// Luminance mask mirroring markInner()'s weave (matches build.mjs maskMark()).
+function maskInner(c) {
+  const A = 24.58, TIP = 282.62, CX1 = 96.09, CX2 = 209.14, CW = 141.31;
+  const f = +c.LEN, g = +c.TIP, S = +c.SCALE, R = +c.ROTATE, SW = c.SW;
+  const sx = (x, k, q = 1) => (A + (x - A) * k * q).toFixed(2);
+  const sy = (y, k, q = 1) => (y * k / q).toFixed(2);
+  const lens = (k, q = 1) => `M ${A} 0 C ${sx(CX1,k,q)} ${sy(CW,k,q)} ${sx(CX2,k,q)} ${sy(CW,k,q)} ${sx(TIP,k,q)} 0 C ${sx(CX2,k,q)} ${sy(-CW,k,q)} ${sx(CX1,k,q)} ${sy(-CW,k,q)} ${A} 0 Z`;
+  const arcR = (k, q = 1) => `M ${A} 0 C ${sx(CX1,k,q)} ${sy(CW,k,q)} ${sx(CX2,k,q)} ${sy(CW,k,q)} ${sx(TIP,k,q)} 0`;
+  const arcL = (k, q = 1) => `M ${sx(TIP,k,q)} 0 C ${sx(CX2,k,q)} ${sy(-CW,k,q)} ${sx(CX1,k,q)} ${sy(-CW,k,q)} ${A} 0`;
+  const at = (a) => `transform="translate(512 512) rotate(${(a + R).toFixed(3)}) scale(${S})"`;
+  const fp = (a) => `<path d="${lens(1)}" fill="#fff" ${at(a)}></path>`;
+  const sp = (a) => `<path d="${lens(f, g)}" fill="#000" stroke="#fff" stroke-width="${SW}" ${at(a)}></path>`;
+  const sa = (d, a) => `<path d="${d}" fill="#000" stroke="#fff" stroke-width="${SW}" ${at(a)}></path>`;
+  return '<g stroke-linejoin="round" stroke-linecap="round">' +
+    sa(arcR(f, g), -90) + fp(-30) + sp(30) + fp(90) + sp(150) + fp(210) + sa(arcL(f, g), -90) + '</g>';
+}
+
+function fullSvg(v, c, id) {
+  const cr = (+c.CR * +c.SCALE).toFixed(2);
+  const knock = c.KNOCK === 'all' || (c.KNOCK === 'mono' && v.fill === v.stroke);
+  let s = '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">';
+  if (v.bg) s += `<rect x="0" y="0" width="1024" height="1024" fill="${v.bg}"></rect>`;
+  if (knock) {
+    s += `<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">${maskInner(c)}</mask></defs>`;
+    s += `<g mask="url(#${id})">${markInner(c, v.fill, v.stroke)}</g>`;
+  } else {
+    s += markInner(c, v.fill, v.stroke);
+  }
+  if (v.center) s += `<circle cx="512" cy="512" r="${cr}" fill="${v.center}"></circle>`;
+  return s + '</svg>';
+}
+
+function variantList(c) {
+  return [
+    { name: 'primary',       bg: null,      fill: c.FILL,  stroke: c.STROKE, center: null },
+    { name: 'icon-cream',    bg: c.CREAM,   fill: c.FILL,  stroke: c.STROKE, center: c.CREAM },
+    { name: 'icon-white',    bg: '#ffffff', fill: c.FILL,  stroke: c.STROKE, center: '#ffffff' },
+    { name: 'icon-black',    bg: '#000000', fill: c.CREAM, stroke: c.CREAM,  center: '#000000' },
+    { name: 'mono-black',    bg: null,      fill: c.INK,   stroke: c.INK,    center: null },
+    { name: 'mono-white',    bg: null,      fill: '#ffffff', stroke: '#ffffff', center: null },
+    { name: 'mono-cream',    bg: null,      fill: c.CREAM, stroke: c.CREAM,  center: null },
+    { name: 'mono-burgundy', bg: null,      fill: c.BURG,  stroke: c.BURG,   center: null },
+  ];
+}
+
+function buildMjs(c) {
+  let t = $('build-template').textContent;
+  const map = {
+    __SW__: c.SW, __SCALE__: c.SCALE, __ROTATE__: c.ROTATE, __LEN__: c.LEN, __TIP__: c.TIP, __CR__: c.CR,
+    __KNOCK__: c.KNOCK,
+    __FILL__: c.FILL, __STROKE__: c.STROKE, __CREAM__: c.CREAM, __INK__: c.INK, __BURG__: c.BURG,
+  };
+  for (const k in map) t = t.split(k).join(map[k]);
+  return t;
+}
+
+function render() {
+  const c = cfg();
+  $('v-scale').textContent = c.SCALE;
+  $('v-rotate').textContent = c.ROTATE;
+  $('v-sw').textContent = c.SW;
+  $('v-len').textContent = c.LEN;
+  $('v-tip').textContent = c.TIP;
+  $('v-cr').textContent = c.CR;
+
+  const previewMap = { cream: 'icon-cream', white: 'icon-white', black: 'icon-black', transparent: 'primary' };
+  const list = variantList(c);
+  const pv = list.find((v) => v.name === previewMap[curBg]);
+  const box = $('preview');
+  box.classList.toggle('checker', curBg === 'transparent');
+  box.innerHTML = fullSvg(pv, c, 'mask-preview');
+
+  $('grid').innerHTML = list.map((v) =>
+    `<div class="tile"><div class="frame">${fullSvg(v, c, 'mask-' + v.name)}</div><span>${v.name}</span></div>`).join('');
+
+  const favSize = +$('fav').value;
+  $('v-fav').textContent = favSize;
+  $('favicons').innerHTML = list.map((v) =>
+    `<div class="fav"><div class="favframe" style="width:${favSize}px;height:${favSize}px">${fullSvg(v, c, 'fav-' + v.name)}</div><span>${v.name}</span></div>`).join('');
+
+  $('code').textContent = buildMjs(c);
+}
+
+document.getElementById('controls').addEventListener('input', render);
+document.getElementById('bgrow').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  curBg = btn.dataset.bg;
+  document.querySelectorAll('#bgrow button').forEach((b) => b.classList.toggle('active', b === btn));
+  render();
+});
+
+$('download').addEventListener('click', () => {
+  const blob = new Blob([buildMjs(cfg())], { type: 'text/javascript' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'build.mjs';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(buildMjs(cfg())); $('copied').textContent = 'copied'; }
+  catch { $('copied').textContent = 'copy failed — select the code manually'; }
+  setTimeout(() => ($('copied').textContent = ''), 2000);
+});
+
+$('knockrow').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  knockMode = btn.dataset.k;
+  document.querySelectorAll('#knockrow button').forEach((b) => b.classList.toggle('active', b === btn));
+  render();
+});
+
+// Compact, portable settings — copy to clipboard, paste into any preview.html.
+function getSettings() {
+  return {
+    scale: $('scale').value, rotate: $('rotate').value, sw: $('sw').value,
+    len: $('len').value, tip: $('tip').value, cr: $('cr').value, fav: $('fav').value,
+    fill: $('c-fill').value, stroke: $('c-stroke').value, cream: $('c-cream').value,
+    ink: $('c-ink').value, burg: $('c-burg').value, knock: knockMode,
+  };
+}
+
+function applySettings(s) {
+  const set = (id, v) => { if (v !== undefined && $(id)) $(id).value = v; };
+  set('scale', s.scale); set('rotate', s.rotate); set('sw', s.sw);
+  set('len', s.len); set('tip', s.tip); set('cr', s.cr); set('fav', s.fav);
+  set('c-fill', s.fill); set('c-stroke', s.stroke); set('c-cream', s.cream);
+  set('c-ink', s.ink); set('c-burg', s.burg);
+  if (s.knock) {
+    knockMode = s.knock;
+    document.querySelectorAll('#knockrow button').forEach((b) => b.classList.toggle('active', b.dataset.k === knockMode));
+  }
+  render();
+}
+
+$('copy-settings').addEventListener('click', async () => {
+  const str = JSON.stringify(getSettings());
+  $('settings-str').value = str;
+  try { await navigator.clipboard.writeText(str); $('settings-msg').textContent = 'copied to clipboard'; }
+  catch { $('settings-str').select(); $('settings-msg').textContent = 'copy the highlighted text manually'; }
+  setTimeout(() => ($('settings-msg').textContent = ''), 2500);
+});
+
+$('load-settings').addEventListener('click', () => {
+  try {
+    applySettings(JSON.parse($('settings-str').value.trim()));
+    $('settings-msg').textContent = 'settings loaded';
+  } catch { $('settings-msg').textContent = 'could not parse settings'; }
+  setTimeout(() => ($('settings-msg').textContent = ''), 2500);
+});
+
+render();
+</script>
+</body>
+</html>
