@@ -35,7 +35,10 @@
   .tile .frame svg { display: block; width: 100%; height: 100%; }
   .tile span { display: block; margin-top: 5px; font-size: 11px; color: var(--muted); }
   .previewRow { display: flex; gap: 18px; align-items: flex-start; }
-  .previewRow .preview { flex: 0 1 460px; }
+  .previewWrap { position: relative; flex: 0 1 460px; }
+  .dlbtn { position: absolute; top: 10px; right: 10px; z-index: 2; display: inline-flex; align-items: center; gap: 5px; font: 12px/1 inherit; padding: 6px 9px; border: 1px solid var(--b); border-radius: 8px; background: rgba(255,255,255,0.92); color: var(--ink); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+  .dlbtn:hover { background: #fff; }
+  .dlbtn svg { width: 13px; height: 13px; }
   .favicons { flex: 1 1 160px; display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start; }
   .fav { text-align: center; }
   .fav .favframe { background: #6f6f6f; border: 1px solid var(--b); border-radius: 6px; overflow: hidden; cursor: pointer; }
@@ -108,7 +111,12 @@
       <button data-bg="transparent">Transparent</button>
     </div>
     <div class="previewRow">
-      <div class="preview" id="preview"></div>
+      <div class="previewWrap">
+        <button id="dl-preview" class="dlbtn" title="Download this preview as a 1024px PNG" aria-label="Download PNG">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>PNG
+        </button>
+        <div class="preview" id="preview"></div>
+      </div>
       <div class="favicons" id="favicons"></div>
     </div>
     <div class="grid" id="grid"></div>
@@ -271,11 +279,34 @@ const $ = (id) => document.getElementById(id);
 let curBg = 'cream';
 let knockMode = 'none';
 let favIcon = null;
+const PREVIEW_MAP = { cream: 'icon-cream', white: 'icon-white', black: 'icon-black', transparent: 'primary' };
 
 function setFavicon(svg) {
   let link = $('favlink');
   if (!link) { link = document.createElement('link'); link.id = 'favlink'; link.rel = 'icon'; document.head.appendChild(link); }
   link.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+
+// Rasterize an SVG string to a PNG download, entirely client-side.
+function downloadPng(svgStr, filename, size) {
+  const sized = svgStr.replace('<svg ', `<svg width="${size}" height="${size}" `);
+  const url = URL.createObjectURL(new Blob([sized], { type: 'image/svg+xml' }));
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    canvas.getContext('2d').drawImage(img, 0, 0, size, size);
+    URL.revokeObjectURL(url);
+    canvas.toBlob((blob) => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }, 'image/png');
+  };
+  img.onerror = () => URL.revokeObjectURL(url);
+  img.src = url;
 }
 
 function cfg() {
@@ -378,9 +409,8 @@ function render() {
   $('v-tip').textContent = c.TIP;
   $('v-cr').textContent = c.CR;
 
-  const previewMap = { cream: 'icon-cream', white: 'icon-white', black: 'icon-black', transparent: 'primary' };
   const list = variantList(c);
-  const pv = list.find((v) => v.name === previewMap[curBg]);
+  const pv = list.find((v) => v.name === PREVIEW_MAP[curBg]);
   const box = $('preview');
   box.classList.toggle('checker', curBg === 'transparent');
   box.innerHTML = fullSvg(pv, c, 'mask-preview');
@@ -433,6 +463,12 @@ $('favicons').addEventListener('click', (e) => {
   if (!tile) return;
   favIcon = tile.dataset.name;
   render();
+});
+
+$('dl-preview').addEventListener('click', () => {
+  const c = cfg();
+  const pv = variantList(c).find((v) => v.name === PREVIEW_MAP[curBg]);
+  downloadPng(fullSvg(pv, c, 'dl-mask'), 'bloom-' + pv.name + '.png', 1024);
 });
 
 $('knockrow').addEventListener('click', (e) => {
