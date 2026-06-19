@@ -1,5 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs><mask id="knockout" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
 <g stroke-linejoin="round" stroke-linecap="round">
+<path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0" fill="#000" stroke="#fff" stroke-width="30" transform="translate(512 512) rotate(-72.500) scale(1.24)"></path>
+<path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="#fff" transform="translate(512 512) rotate(-12.500) scale(1.24)"></path>
+<path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="#000" stroke="#fff" stroke-width="30" transform="translate(512 512) rotate(47.500) scale(1.24)"></path>
+<path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="#fff" transform="translate(512 512) rotate(107.500) scale(1.24)"></path>
+<path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="#000" stroke="#fff" stroke-width="30" transform="translate(512 512) rotate(167.500) scale(1.24)"></path>
+<path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="#fff" transform="translate(512 512) rotate(227.500) scale(1.24)"></path>
+<path d="M 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0" fill="#000" stroke="#fff" stroke-width="30" transform="translate(512 512) rotate(-72.500) scale(1.24)"></path>
+</g>
+</mask></defs>
+<g mask="url(#knockout)"><g stroke-linejoin="round" stroke-linecap="round">
 <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0" fill="none" stroke="#f0ebe0" stroke-width="30" transform="translate(512 512) rotate(-72.500) scale(1.24)"></path>
 <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="#f0ebe0" transform="translate(512 512) rotate(-12.500) scale(1.24)"></path>
 <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="none" stroke="#f0ebe0" stroke-width="30" transform="translate(512 512) rotate(47.500) scale(1.24)"></path>
@@ -7,5 +18,5 @@
 <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="none" stroke="#f0ebe0" stroke-width="30" transform="translate(512 512) rotate(167.500) scale(1.24)"></path>
 <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="#f0ebe0" transform="translate(512 512) rotate(227.500) scale(1.24)"></path>
 <path d="M 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0" fill="none" stroke="#f0ebe0" stroke-width="30" transform="translate(512 512) rotate(-72.500) scale(1.24)"></path>
-</g>
+</g></g>
 </svg>

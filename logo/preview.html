@@ -38,9 +38,11 @@
   .previewRow .preview { flex: 0 1 460px; }
   .favicons { flex: 1 1 160px; display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start; }
   .fav { text-align: center; }
-  .fav .favframe { background: #6f6f6f; border: 1px solid var(--b); border-radius: 6px; overflow: hidden; }
+  .fav .favframe { background: #6f6f6f; border: 1px solid var(--b); border-radius: 6px; overflow: hidden; cursor: pointer; }
   .fav .favframe svg { display: block; width: 100%; height: 100%; }
+  .fav.active .favframe { outline: 2px solid var(--ink); outline-offset: 1px; }
   .fav span { display: block; margin-top: 4px; font-size: 10px; color: var(--muted); }
+  .fav.active span { color: var(--ink); font-weight: 600; }
   .out { margin: 0 24px 32px; }
   .out .bar { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
   .out h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
@@ -70,6 +72,7 @@
     <div class="knob"><label>Stroke-petal tip pull <b id="v-tip">1.00</b></label><input type="range" id="tip" min="0.6" max="1.6" step="0.01" value="1"></div>
     <div class="knob"><label>Center dot radius <b id="v-cr">39.94</b></label><input type="range" id="cr" min="0" max="120" step="0.5" value="39.94"></div>
     <div class="knob"><label>Favicon preview size (px) <b id="v-fav">48</b></label><input type="range" id="fav" min="16" max="96" step="1" value="48"></div>
+    <div class="knob"><label>Favicon mark scale <b id="v-favscale">1.80</b></label><input type="range" id="favscale" min="1" max="3" step="0.01" value="1.8"></div>
 
     <h2 style="margin-top:20px">Colors</h2>
     <div class="colors">
@@ -138,6 +141,10 @@ const CENTER_R = (__CR__ * SCALE).toFixed(2);
 // 'none' = off; 'all' = every variant; 'mono' = only single-color marks
 // (fill === stroke), where the weave is otherwise invisible.
 const KNOCKOUT = '__KNOCK__';
+// Dedicated favicon assets (mono marks only) are drawn larger to fill the tab
+// icon, and rasterized at small sizes.
+const FAV_SCALE = __FAVSCALE__;
+const FAV_SIZES = [16, 32, 48];
 
 // Distance from center to the tip of the stroke-only petals, as a fraction of
 // the filled petals' length (1 = same as filled; lower = outlined petals end
@@ -159,23 +166,23 @@ const lens = (f, g = 1) => `M ${ANCHOR} 0 C ${sx(CX1, f, g)} ${sy(CW, f, g)} ${s
 const arcRight = (f, g = 1) => `M ${ANCHOR} 0 C ${sx(CX1, f, g)} ${sy(CW, f, g)} ${sx(CX2, f, g)} ${sy(CW, f, g)} ${sx(TIP, f, g)} 0`;
 const arcLeft = (f, g = 1) => `M ${sx(TIP, f, g)} 0 C ${sx(CX2, f, g)} ${sy(-CW, f, g)} ${sx(CX1, f, g)} ${sy(-CW, f, g)} ${ANCHOR} 0`;
 
-const at = (a) => `transform="translate(512 512) rotate(${(a + ROTATE).toFixed(3)}) scale(${SCALE})"`;
-const fillPetal = (a, c) => `<path d="${lens(1)}" fill="${c}" ${at(a)}></path>`;
-const strokePetal = (a, c) => `<path d="${lens(STROKE_LEN, STROKE_TIP)}" fill="none" stroke="${c}" stroke-width="${SW}" ${at(a)}></path>`;
-const strokeArc = (d, a, c) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${SW}" ${at(a)}></path>`;
+const at = (a, s = SCALE) => `transform="translate(512 512) rotate(${(a + ROTATE).toFixed(3)}) scale(${s})"`;
+const fillPetal = (a, c, s) => `<path d="${lens(1)}" fill="${c}" ${at(a, s)}></path>`;
+const strokePetal = (a, c, s) => `<path d="${lens(STROKE_LEN, STROKE_TIP)}" fill="none" stroke="${c}" stroke-width="${SW}" ${at(a, s)}></path>`;
+const strokeArc = (d, a, c, s) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${SW}" ${at(a, s)}></path>`;
 
 // Braided pinwheel: outlined petal at top, top petal split into two arcs so the
 // weave is consistent all the way around (right arc under, left arc over).
-function mark(fill, stroke) {
+function mark(fill, stroke, s) {
   return [
     '<g stroke-linejoin="round" stroke-linecap="round">',
-    strokeArc(arcRight(STROKE_LEN, STROKE_TIP), -90, stroke),
-    fillPetal(-30, fill),
-    strokePetal(30, stroke),
-    fillPetal(90, fill),
-    strokePetal(150, stroke),
-    fillPetal(210, fill),
-    strokeArc(arcLeft(STROKE_LEN, STROKE_TIP), -90, stroke),
+    strokeArc(arcRight(STROKE_LEN, STROKE_TIP), -90, stroke, s),
+    fillPetal(-30, fill, s),
+    strokePetal(30, stroke, s),
+    fillPetal(90, fill, s),
+    strokePetal(150, stroke, s),
+    fillPetal(210, fill, s),
+    strokeArc(arcLeft(STROKE_LEN, STROKE_TIP), -90, stroke, s),
     '</g>',
   ].join('\n');
 }
@@ -183,10 +190,10 @@ function mark(fill, stroke) {
 // Luminance mask mirroring mark()'s weave: white keeps ink, black cuts a hole.
 // Outlined petals fill black (knock out the filled petal beneath) but keep a
 // white outline; later filled petals repaint white, preserving the weave.
-function maskMark() {
-  const fp = (a) => `<path d="${lens(1)}" fill="#fff" ${at(a)}></path>`;
-  const sp = (a) => `<path d="${lens(STROKE_LEN, STROKE_TIP)}" fill="#000" stroke="#fff" stroke-width="${SW}" ${at(a)}></path>`;
-  const sa = (d, a) => `<path d="${d}" fill="#000" stroke="#fff" stroke-width="${SW}" ${at(a)}></path>`;
+function maskMark(s) {
+  const fp = (a) => `<path d="${lens(1)}" fill="#fff" ${at(a, s)}></path>`;
+  const sp = (a) => `<path d="${lens(STROKE_LEN, STROKE_TIP)}" fill="#000" stroke="#fff" stroke-width="${SW}" ${at(a, s)}></path>`;
+  const sa = (d, a) => `<path d="${d}" fill="#000" stroke="#fff" stroke-width="${SW}" ${at(a, s)}></path>`;
   return [
     '<g stroke-linejoin="round" stroke-linecap="round">',
     sa(arcRight(STROKE_LEN, STROKE_TIP), -90),
@@ -196,19 +203,19 @@ function maskMark() {
   ].join('\n');
 }
 
-function svg({ bg, fill, stroke, center }) {
+function svg({ bg, fill, stroke, center, scale = SCALE, centerR = CENTER_R }) {
   const knock = KNOCKOUT === 'all' || (KNOCKOUT === 'mono' && fill === stroke);
   const parts = ['<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">'];
   if (bg) parts.push(`<rect x="0" y="0" width="1024" height="1024" fill="${bg}"></rect>`);
   if (knock) {
     parts.push('<defs><mask id="knockout" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">');
-    parts.push(maskMark());
+    parts.push(maskMark(scale));
     parts.push('</mask></defs>');
-    parts.push(`<g mask="url(#knockout)">${mark(fill, stroke)}</g>`);
+    parts.push(`<g mask="url(#knockout)">${mark(fill, stroke, scale)}</g>`);
   } else {
-    parts.push(mark(fill, stroke));
+    parts.push(mark(fill, stroke, scale));
   }
-  if (center) parts.push(`<circle cx="512" cy="512" r="${CENTER_R}" fill="${center}"></circle>`);
+  if (center) parts.push(`<circle cx="512" cy="512" r="${centerR}" fill="${center}"></circle>`);
   parts.push('</svg>');
   return parts.join('\n') + '\n';
 }
@@ -245,12 +252,31 @@ for (const v of variants) {
   execFileSync('rsvg-convert', ['-w', String(PNG_SIZE), '-h', String(PNG_SIZE), svgPath, '-o', pngPath]);
   console.log('wrote', v.name + '.svg + .png');
 }
+
+// Dedicated favicon assets for the mono marks: drawn at FAV_SCALE to fill the
+// tab icon, as an SVG plus small PNG fallbacks.
+for (const v of variants.filter((x) => x.name.startsWith('bloom-mono-'))) {
+  const base = v.name + '-favicon';
+  const svgPath = `${dir}/${base}.svg`;
+  writeFileSync(svgPath, svg({ ...v, scale: FAV_SCALE }));
+  for (const size of FAV_SIZES) {
+    execFileSync('rsvg-convert', ['-w', String(size), '-h', String(size), svgPath, '-o', `${dir}/${base}-${size}.png`]);
+  }
+  console.log('wrote', base + '.svg + ' + FAV_SIZES.map((s) => s + 'px').join('/') + ' PNGs');
+}
 </script>
 
 <script>
 const $ = (id) => document.getElementById(id);
 let curBg = 'cream';
 let knockMode = 'none';
+let favIcon = null;
+
+function setFavicon(svg) {
+  let link = $('favlink');
+  if (!link) { link = document.createElement('link'); link.id = 'favlink'; link.rel = 'icon'; document.head.appendChild(link); }
+  link.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
 
 function cfg() {
   return {
@@ -266,6 +292,7 @@ function cfg() {
     INK: $('c-ink').value,
     BURG: $('c-burg').value,
     KNOCK: knockMode,
+    FAVSCALE: (+$('favscale').value).toFixed(2),
   };
 }
 
@@ -335,7 +362,7 @@ function buildMjs(c) {
   let t = $('build-template').textContent;
   const map = {
     __SW__: c.SW, __SCALE__: c.SCALE, __ROTATE__: c.ROTATE, __LEN__: c.LEN, __TIP__: c.TIP, __CR__: c.CR,
-    __KNOCK__: c.KNOCK,
+    __KNOCK__: c.KNOCK, __FAVSCALE__: c.FAVSCALE,
     __FILL__: c.FILL, __STROKE__: c.STROKE, __CREAM__: c.CREAM, __INK__: c.INK, __BURG__: c.BURG,
   };
   for (const k in map) t = t.split(k).join(map[k]);
@@ -363,8 +390,16 @@ function render() {
 
   const favSize = +$('fav').value;
   $('v-fav').textContent = favSize;
+  $('v-favscale').textContent = c.FAVSCALE;
+  // Favicons get their own (larger) scale so the mark can fill the tab icon.
+  const fc = { ...c, SCALE: c.FAVSCALE };
   $('favicons').innerHTML = list.map((v) =>
-    `<div class="fav"><div class="favframe" style="width:${favSize}px;height:${favSize}px">${fullSvg(v, c, 'fav-' + v.name)}</div><span>${v.name}</span></div>`).join('');
+    `<div class="fav${v.name === favIcon ? ' active' : ''}" data-name="${v.name}" title="Use as this tab's favicon"><div class="favframe" style="width:${favSize}px;height:${favSize}px">${fullSvg(v, fc, 'fav-' + v.name)}</div><span>${v.name}</span></div>`).join('');
+
+  if (favIcon) {
+    const fv = list.find((v) => v.name === favIcon);
+    if (fv) setFavicon(fullSvg(fv, fc, 'favicon-live'));
+  }
 
   $('code').textContent = buildMjs(c);
 }
@@ -393,6 +428,13 @@ $('copy').addEventListener('click', async () => {
   setTimeout(() => ($('copied').textContent = ''), 2000);
 });
 
+$('favicons').addEventListener('click', (e) => {
+  const tile = e.target.closest('.fav');
+  if (!tile) return;
+  favIcon = tile.dataset.name;
+  render();
+});
+
 $('knockrow').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if (!btn) return;
@@ -405,22 +447,23 @@ $('knockrow').addEventListener('click', (e) => {
 function getSettings() {
   return {
     scale: $('scale').value, rotate: $('rotate').value, sw: $('sw').value,
-    len: $('len').value, tip: $('tip').value, cr: $('cr').value, fav: $('fav').value,
+    len: $('len').value, tip: $('tip').value, cr: $('cr').value, fav: $('fav').value, favscale: $('favscale').value,
     fill: $('c-fill').value, stroke: $('c-stroke').value, cream: $('c-cream').value,
-    ink: $('c-ink').value, burg: $('c-burg').value, knock: knockMode,
+    ink: $('c-ink').value, burg: $('c-burg').value, knock: knockMode, icon: favIcon,
   };
 }
 
 function applySettings(s) {
   const set = (id, v) => { if (v !== undefined && $(id)) $(id).value = v; };
   set('scale', s.scale); set('rotate', s.rotate); set('sw', s.sw);
-  set('len', s.len); set('tip', s.tip); set('cr', s.cr); set('fav', s.fav);
+  set('len', s.len); set('tip', s.tip); set('cr', s.cr); set('fav', s.fav); set('favscale', s.favscale);
   set('c-fill', s.fill); set('c-stroke', s.stroke); set('c-cream', s.cream);
   set('c-ink', s.ink); set('c-burg', s.burg);
   if (s.knock) {
     knockMode = s.knock;
     document.querySelectorAll('#knockrow button').forEach((b) => b.classList.toggle('active', b.dataset.k === knockMode));
   }
+  if (s.icon !== undefined) favIcon = s.icon;
   render();
 }
 
