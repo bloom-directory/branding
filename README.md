@@ -30,17 +30,46 @@ The `/bloom` wordmark is set in **Instrument Serif** — <https://fonts.google.c
 - The leading slash `/` is set in **Burgundy mid** (`#8a2a3a`); the word `bloom` is set in **Ink** (`#1a1a1a`) on cream, or reversed to **Cream** on dark.
 - Pair the wordmark with the mark only when there's room; at small sizes use the mark alone.
 
-Load the webfont:
+---
+
+## Typography
+
+Use the type families as a clear hierarchy:
+
+| Role | Family | Recommended weights | Use |
+|------|--------|---------------------|-----|
+| Display and wordmark | [**Instrument Serif**](https://fonts.google.com/specimen/Instrument+Serif) | 400, regular or italic | Primary headings and the `/bloom` wordmark |
+| Subheadings | [**JetBrains Mono**](https://fonts.google.com/specimen/JetBrains+Mono) | 300, 400, 500 | Subheadings, section labels, navigation, buttons, and technical callouts |
+| Body | [**Inter Tight**](https://fonts.google.com/specimen/Inter+Tight) | 300, 400, 500, 600 | Paragraphs, descriptions, and longer-form copy |
+
+Load the full webfont stack:
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 ```
 
 ```css
-font-family: "Instrument Serif", serif;
-font-style: italic;
+:root {
+  --font-display: "Instrument Serif", "Times New Roman", serif;
+  --font-subheading: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-body: "Inter Tight", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.display-heading {
+  font-family: var(--font-display);
+}
+
+.subheading {
+  font-family: var(--font-subheading);
+  font-weight: 500;
+}
+
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
 ```
 
 ---
