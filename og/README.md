@@ -76,10 +76,16 @@ rather than a hash of the output.
 ## Compatibility with the website
 
 The stamp keyword is `bloom-og-source` and the digest is a plain SHA-256 of
-the SVG bytes — identical to the generator in the website repo
-(`scripts/og-image.ts`), with the same pinned font URLs and digests. The two
-produce interchangeable PNGs: `og/bloom-og.png` here is byte-for-byte the PNG
-the site ships, and either repo's checker accepts the other's output.
+the SVG bytes. The website ships the same artwork and checks its digest without
+shipping a renderer or depending on branding at runtime. Render a website
+checkout offline from this isolated branding checkout after warming the cache:
+
+```sh
+node og/og-image.mjs --offline --in ../website/public/og-image.svg --out ../website/public/og-image.png
+```
+
+Replace `../website` with the local website checkout path. The SVG embeds its
+harness artwork, so rendering needs no external image fetches.
 
 `og-image.test.mjs` holds that line. Besides the stamp and PNG-chunk
 contracts, it renders the committed SVG for real and compares the result with
