@@ -180,6 +180,6 @@ node og/og-image.mjs --check                         # fail if the PNG is stale
 node og/og-image.mjs --in card.svg --out card.png    # any other card
 ```
 
-No npm dependencies. Rendering needs `rsvg-convert` (`brew install librsvg`) and the three brand faces, which are downloaded once into `og/.font-cache` and pinned by SHA-256 so type never silently falls back to a system serif — `--font-dir` renders from a local copy instead and `--offline` refuses to fetch. `--check` is pure byte reading: no rasteriser, no fonts, no network, which is what [`.github/workflows/og-image.yml`](.github/workflows/og-image.yml) gates every change on before it renders for real.
+No npm dependencies. Rendering needs `rsvg-convert` (`brew install librsvg`) and the three brand faces, which are downloaded once into `og/.font-cache` and pinned by SHA-256. `--font-dir` renders from a local copy instead and `--offline` refuses to fetch. `--check` reads bytes only: no rasteriser, fonts, or network required.
 
 The stamp keyword and font pins match the website's own generator, so the PNGs are interchangeable between the two repos. Full details, including the test suite: [`og/README.md`](og/README.md).

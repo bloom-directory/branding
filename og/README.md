@@ -61,7 +61,7 @@ rather than a hash of the output.
 
 - `--check` never renders. No `rsvg-convert`, no fonts, no network — it reads
   the SVG, hashes it, and compares that with the `bloom-og-source` `tEXt`
-  chunk in the PNG. This is the cheap gate CI runs on every change.
+  chunk in the PNG. This can be used as a cheap CI gate.
 - `--font-dir <dir>` renders from faces you already have and makes no network
   request. An empty or non-existent directory is an error rather than a silent
   fallback to system fonts.
@@ -86,4 +86,4 @@ contracts, it renders the committed SVG for real and compares the result with
 the committed PNG pixel by pixel, tolerating antialiasing differences between
 librsvg builds but not moved or restyled type. The rendering tests skip
 themselves with a reason when `rsvg-convert` is missing or the font cache is
-cold with no network; CI installs librsvg, so there they always run.
+cold with no network. Install librsvg and warm the pinned font cache to exercise them.
