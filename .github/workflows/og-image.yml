@@ -1,0 +1,82 @@
+name: OG image
+
+# Guards og/bloom-og.png against drifting from og/bloom-og.svg, and exercises
+# og/og-image.mjs itself: a real rsvg-convert render compared against the
+# committed PNG, plus the ways the CLI is meant to fail.
+
+on:
+  pull_request:
+    paths:
+      - og/**
+      - .github/workflows/og-image.yml
+  push:
+    branches: [main]
+    paths:
+      - og/**
+      - .github/workflows/og-image.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: og-image-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stamp:
+    name: Stamp check (no rasteriser)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # The whole point of the digest stamp: catching a stale PNG needs no
+      # librsvg, no fonts and no network.
+      - name: Committed PNG matches committed SVG
+        run: node og/og-image.mjs --check
+
+  render:
+    name: Render and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install librsvg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends librsvg2-bin
+          rsvg-convert --version
+
+      - name: Run tests
+        run: node --test og/og-image.test.mjs
+
+      # Renders the card for real, into the runner's temp dir, and confirms the
+      # result carries the current SVG's stamp. Fonts come down from the pinned
+      # URLs here, so a dead or changed upstream face fails loudly.
+      - name: Rebuild from scratch
+        run: |
+          node og/og-image.mjs --in og/bloom-og.svg --out "$RUNNER_TEMP/bloom-og.png"
+          node og/og-image.mjs --check --in og/bloom-og.svg --out "$RUNNER_TEMP/bloom-og.png"
+
+      # The same render driven entirely from the warm cache, with fetching
+      # forbidden: proves the offline path documented in og/README.md.
+      - name: Rebuild offline from the font cache
+        run: |
+          node og/og-image.mjs --offline --in og/bloom-og.svg --out "$RUNNER_TEMP/offline.png"
+          node og/og-image.mjs --check --in og/bloom-og.svg --out "$RUNNER_TEMP/offline.png"
+
+      - name: Upload rendered card
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bloom-og
+          path: ${{ runner.temp }}/bloom-og.png
+          if-no-files-found: warn

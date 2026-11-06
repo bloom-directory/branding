@@ -169,3 +169,17 @@ node logo/build.mjs
 It writes every `.svg`, renders the matching 1024px `.png` for each, and emits the mono favicon sets — all via `rsvg-convert`. It **fails closed**: if `rsvg-convert` is missing it exits non-zero rather than emitting SVGs without PNGs (`brew install librsvg`).
 
 `SCALE` controls the edge margin across every master asset; `FAV_SCALE` independently sizes the favicons; `KNOCKOUT` selects the negative-overlap mode.
+
+### `og/og-image.mjs`
+
+The social-preview (OG) image renderer and staleness checker. [`og/bloom-og.svg`](og/bloom-og.svg) is the artwork proposed for the website social preview in website PR #91; [`og/bloom-og.png`](og/bloom-og.png) is its 1200×630 render, stamped with the SHA-256 of the SVG it came from.
+
+```bash
+node og/og-image.mjs                                 # rebuild the PNG from the SVG
+node og/og-image.mjs --check                         # fail if the PNG is stale
+node og/og-image.mjs --in card.svg --out card.png    # any other card
+```
+
+No npm dependencies. Rendering needs `rsvg-convert` (`brew install librsvg`) and the three brand faces, which are downloaded once into `og/.font-cache` and pinned by SHA-256 so type never silently falls back to a system serif — `--font-dir` renders from a local copy instead and `--offline` refuses to fetch. `--check` is pure byte reading: no rasteriser, no fonts, no network, which is what [`.github/workflows/og-image.yml`](.github/workflows/og-image.yml) gates every change on before it renders for real.
+
+The stamp keyword and font pins match the website's own generator, so the PNGs are interchangeable between the two repos. Full details, including the test suite: [`og/README.md`](og/README.md).

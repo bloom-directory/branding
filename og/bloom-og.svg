@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="og-title og-desc">
+  <title id="og-title">/bloom</title>
+  <desc id="og-desc">The programmable financial harness for AI agents.</desc>
+
+  <!--
+    Source of truth for public/og-image.png. Regenerate the PNG with
+    `bun run build:og` after any edit here; src/og-image.test.ts fails when the
+    two drift apart.
+
+    Type and colour come straight from the live site: Instrument Serif italic
+    for display (src/styles/hero.css), JetBrains Mono for labels, Inter Tight
+    for body, and the palette tokens in src/styles/tokens.css.
+  -->
+
+  <rect width="1200" height="630" fill="#f4efe6"/>
+
+  <!-- Masthead: the site header lockup enlarged — a 44px mark beside /bloom at
+       42px, close to the header's own 28px/27px proportion. -->
+  <g transform="translate(110 84) scale(0.060985) translate(-512 -512)" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0" fill="none" stroke="#7a2230" stroke-width="30" transform="translate(512 512) rotate(-72.500) scale(1.24)"/>
+    <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="#9d2d3f" transform="translate(512 512) rotate(-12.500) scale(1.24)"/>
+    <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="none" stroke="#7a2230" stroke-width="30" transform="translate(512 512) rotate(47.500) scale(1.24)"/>
+    <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="#9d2d3f" transform="translate(512 512) rotate(107.500) scale(1.24)"/>
+    <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="none" stroke="#7a2230" stroke-width="30" transform="translate(512 512) rotate(167.500) scale(1.24)"/>
+    <path d="M 24.58 0 C 96.09 141.31 209.14 141.31 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0 Z" fill="#9d2d3f" transform="translate(512 512) rotate(227.500) scale(1.24)"/>
+    <path d="M 282.62 0 C 209.14 -141.31 96.09 -141.31 24.58 0" fill="none" stroke="#7a2230" stroke-width="30" transform="translate(512 512) rotate(-72.500) scale(1.24)"/>
+  </g>
+  <text x="148" y="97" font-family="Instrument Serif" font-size="42" font-style="italic" font-weight="400" fill="#15130f"><tspan fill="#8a2a3a">/</tspan>bloom</text>
+  <text x="1114.5" y="89" text-anchor="end" font-family="JetBrains Mono" font-size="14" font-weight="500" letter-spacing="2.5" fill="#706757">BLOOM.DIRECTORY</text>
+  <path d="M88 152.5H1112" stroke="#15130f" stroke-opacity="0.12" stroke-width="1"/>
+
+  <!-- Thesis column. The three display lines spell out the <desc> above, which
+       is also the sentence og:image:alt ends with. -->
+  <text x="88" y="248" font-family="JetBrains Mono" font-size="15" font-weight="500" letter-spacing="2.4" fill="#8a2a3a">AGENT-NATIVE FINANCE</text>
+  <g font-family="Instrument Serif" font-size="72" font-style="italic" font-weight="400" fill="#15130f">
+    <text x="88" y="330">The programmable</text>
+    <text x="88" y="412">financial harness</text>
+    <text x="88" y="494">for AI agents.</text>
+  </g>
+
+  <!-- Proof column: the agents the homepage lists, in the homepage's order. Its
+       first line shares the display baseline; the rest sets its own rhythm. -->
+  <path d="M744.5 288V546" stroke="#15130f" stroke-opacity="0.12" stroke-width="1"/>
+  <text x="788" y="248" font-family="JetBrains Mono" font-size="13" font-weight="500" letter-spacing="2.3" fill="#9a907f">WORKS WITH</text>
+  <g font-family="JetBrains Mono" font-size="20" font-weight="400" fill="#342d24">
+    <text x="788" y="330">Codex</text>
+    <text x="788" y="362">Claude</text>
+    <text x="788" y="394">Cursor</text>
+    <text x="788" y="426">Hermes</text>
+    <text x="788" y="458">OpenClaw</text>
+    <text x="788" y="490">IronClaw</text>
+    <text x="788" y="522">Grokbot</text>
+  </g>
+</svg>
