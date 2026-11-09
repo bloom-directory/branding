@@ -7,10 +7,22 @@ installing a rasteriser.
 
 | File | What it is |
 |------|-----------|
-| [`bloom-og.svg`](bloom-og.svg) | Artwork proposed for the website social preview in website PR #91 |
+| [`bloom-og.svg`](bloom-og.svg) | Editable source artwork; not for social metadata or uploads |
 | [`bloom-og.png`](bloom-og.png) | 1200×630 render of it, stamped with the SVG's digest |
 | [`og-image.mjs`](og-image.mjs) | The renderer and checker (Node, no npm dependencies) |
 | [`og-image.test.mjs`](og-image.test.mjs) | `node --test og/og-image.test.mjs` |
+
+## Publishing: use the PNG only
+
+Use **`bloom-og.png`** for website `og:image` and `twitter:image` metadata,
+link previews, and social uploads. The **SVG is editable source artwork only**;
+do not publish it as the social preview image.
+
+The 1200×630 PNG preserves crisp type and flat brand colors without lossy
+compression. Keep the SVG for editing, then regenerate the PNG after every
+artwork change and run `node og/og-image.mjs --check` before publishing.
+For website metadata, declare `og:image:type` as `image/png`, dimensions as
+1200×630, and provide descriptive `og:image:alt` text.
 
 ## Usage
 

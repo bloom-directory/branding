@@ -172,13 +172,15 @@ It writes every `.svg`, renders the matching 1024px `.png` for each, and emits t
 
 ### `og/og-image.mjs`
 
-The social-preview (OG) image renderer and staleness checker. [`og/bloom-og.svg`](og/bloom-og.svg) is the artwork proposed for the website social preview in website PR #91; [`og/bloom-og.png`](og/bloom-og.png) is its 1200×630 render, stamped with the SHA-256 of the SVG it came from.
+The social-preview (OG) image renderer and staleness checker. [`og/bloom-og.svg`](og/bloom-og.svg) is the editable source artwork; [`og/bloom-og.png`](og/bloom-og.png) is its 1200×630 render, stamped with the SHA-256 of the SVG it came from.
 
 ```bash
 node og/og-image.mjs                                 # rebuild the PNG from the SVG
 node og/og-image.mjs --check                         # fail if the PNG is stale
 node og/og-image.mjs --in card.svg --out card.png    # any other card
 ```
+
+**Publish only the PNG** in `og:image`, `twitter:image`, and social uploads. The SVG is editing source only. Regenerate the PNG after artwork changes; see [publishing guidance](og/README.md#publishing-use-the-png-only).
 
 No npm dependencies. Rendering needs `rsvg-convert` (`brew install librsvg`) and the three brand faces, which are downloaded once into `og/.font-cache` and pinned by SHA-256. `--font-dir` renders from a local copy instead and `--offline` refuses to fetch. `--check` reads bytes only: no rasteriser, fonts, or network required.
 
